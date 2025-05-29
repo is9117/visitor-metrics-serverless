@@ -1,0 +1,88 @@
+service: visitor-tracker
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: ap-northeast-2
+  environment:
+    COUNT_TABLE: VisitorCounts
+    LOG_TABLE: VisitorLog
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+          Resource:
+            - arn:aws:dynamodb:*:*:table/VisitorCounts
+            - arn:aws:dynamodb:*:*:table/VisitorLog
+  apiGateway:
+    shouldStartNameWithService: true
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: api.i544c.com
+    basePath: ''
+    certificateArn: arn:aws:acm:ap-northeast-2:247834618978:certificate/58281384-a04a-4ad9-80ae-35b50e6a9b30
+    endpointType: regional
+    securityPolicy: tls_1_2
+    createRoute53Record: true
+
+functions:
+  countVisitor:
+    handler: handler.lambda_handler
+    events:
+      - http:
+          path: count
+          method: post
+          cors: true
+  getVisitorStats:
+    handler: handler.get_visitor_stats
+    events:
+      - http:
+          path: count
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    VisitorCounts:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: VisitorCounts
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: counter_type
+            AttributeType: S
+          - AttributeName: path
+            AttributeType: S
+        KeySchema:
+          - AttributeName: counter_type
+            KeyType: HASH
+          - AttributeName: path
+            KeyType: RANGE
+
+    VisitorLog:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: VisitorLog
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: visitor_id
+            AttributeType: S
+          - AttributeName: visit_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: visitor_id
+            KeyType: HASH
+          - AttributeName: visit_id
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: false
+  
