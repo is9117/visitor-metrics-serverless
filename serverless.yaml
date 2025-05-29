@@ -86,3 +86,30 @@ resources:
           AttributeName: ttl
           Enabled: false
   
+    BlogWAF:
+      Type: AWS::WAFv2::WebACL
+      Properties:
+        Name: BlogWAF
+        Scope: REGIONAL  # use CLOUDFRONT for CDN-based APIs
+        DefaultAction:
+          Allow: {}
+        VisibilityConfig:
+          SampledRequestsEnabled: true
+          CloudWatchMetricsEnabled: true
+          MetricName: BlogWAF
+        Rules:
+          - Name: RateLimitRule
+            Priority: 1
+            Action:
+              Block: {}
+            Statement:
+              RateBasedStatement:
+                Limit: 100
+                AggregateKeyType: IP
+            VisibilityConfig:
+              SampledRequestsEnabled: true
+              CloudWatchMetricsEnabled: true
+              MetricName: RateLimitRule
+
+    # Note: Associate the WAF with the API Gateway manually
+  
