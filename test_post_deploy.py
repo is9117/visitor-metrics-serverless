@@ -8,8 +8,7 @@ from datetime import datetime, UTC
 from urllib.parse import urljoin
 
 # Endpoints for the deployed service
-API_BASE = "https://eecyfdsaw1.execute-api.ap-northeast-2.amazonaws.com/dev/"
-CLOUDFRONT_BASE = "https://cdn.i544c.com/"
+API_BASE = "https://api.i544c.com/"
 DYNAMODB_REGION = os.getenv("AWS_REGION", "ap-northeast-2")
 COUNT_TABLE = os.getenv("COUNT_TABLE", "VisitorCounts")
 LOG_TABLE = os.getenv("LOG_TABLE", "VisitorLog")
@@ -82,7 +81,7 @@ class TestVisitorServiceIntegration(unittest.TestCase):
     def test_cloudfront_cache_behavior(self):
         path = "/test"
         visitor_id = str(uuid.uuid4())
-        url = urljoin(CLOUDFRONT_BASE, f"dev/count?path={path}")
+        url = urljoin(API_BASE, f"count?path={path}")
 
         headers = {"Cookie": f"visitor_id={visitor_id}"}
 
